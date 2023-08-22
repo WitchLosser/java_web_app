@@ -1,76 +1,66 @@
 package org.example.Controller;
 
-import org.example.DAOs.CategoryDao;
-import org.example.dto.category.CategoryItemDTO;
-import org.example.entities.Category;
-import org.example.utils.HibernateUtil;
-import org.hibernate.SessionFactory;
-import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
+
+import lombok.AllArgsConstructor;
+import org.example.dto.category.CategoryCreateDTO;
+import org.example.dto.category.CategoryUpdateDTO;
+import org.example.entities.CategoryEntity;
+import org.example.repositories.CategoryRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/categories")
+@AllArgsConstructor
 public class CategoryController {
 
-    SessionFactory sf = HibernateUtil.getSessionFactory();
-    CategoryDao categoryDao = new CategoryDao(sf);
-    ModelMapper modelMapper = new ModelMapper();
+    private final CategoryRepository categoryRepository;
 
-
-    @GetMapping("/{id}")
-    public ResponseEntity<CategoryItemDTO> getCategory(@PathVariable int id) {
-        Category category = categoryDao.getCategoryById(id);
-        if (category != null) {
-            CategoryItemDTO categoryDTO = modelMapper.map(category, CategoryItemDTO.class);
-            return new ResponseEntity<>(categoryDTO, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    @PostMapping("/category")
+    public CategoryEntity create(@RequestBody CategoryCreateDTO dto) {
+        CategoryEntity cat = CategoryEntity
+                .builder()
+                .name(dto.getName())
+                .description(dto.getDescription())
+                .image(dto.getImage())
+                .build();
+        categoryRepository.save(cat);
+        return cat;
+    }
+    @GetMapping("/category/{id}")
+    public ResponseEntity<CategoryEntity> getCategoryById(@PathVariable int id) {
+        Optional<CategoryEntity> categoryOptional = categoryRepository.findById(id);
+        return categoryOptional
+                .map(category -> ResponseEntity.ok().body(category))
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping
-    public ResponseEntity<List<CategoryItemDTO>> getAllCategories() {
-        List<Category> categories = categoryDao.getAllCategories();
-        List<CategoryItemDTO> categoryDTOs = categories.stream()
-                .map(category -> modelMapper.map(category, CategoryItemDTO.class))
-                .collect(Collectors.toList());
-        return new ResponseEntity<>(categoryDTOs, HttpStatus.OK);
+    @GetMapping("/category")
+    public List<CategoryEntity> getAllCategories() {
+        return categoryRepository.findAll();
     }
 
-    @PostMapping
-    public ResponseEntity<Void> createCategory(@RequestBody CategoryItemDTO categoryDTO) {
-        Category category = modelMapper.map(categoryDTO, Category.class);
-        categoryDao.createCategory(category);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    @PutMapping("/category/{id}")
+    public ResponseEntity<CategoryEntity> updateCategory(@PathVariable int id, @RequestBody CategoryUpdateDTO dto) {
+        Optional<CategoryEntity> categoryOptional = categoryRepository.findById(id);
+        return categoryOptional.map(category -> {
+            category.setName(dto.getName());
+            category.setDescription(dto.getDescription());
+            category.setImage(dto.getImage());
+            categoryRepository.save(category);
+            return ResponseEntity.ok().body(category);
+        }).orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Void> updateCategory(@PathVariable int id, @RequestBody CategoryItemDTO updatedCategory) {
-        Category existingCategory = categoryDao.getCategoryById(id);
-        if (existingCategory != null) {
-            modelMapper.map(updatedCategory, existingCategory);
-            existingCategory.setId(id);
-            categoryDao.updateCategory(existingCategory);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/category/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable int id) {
-        Category category = categoryDao.getCategoryById(id);
-        if (category != null) {
-            categoryDao.deleteCategory(category);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        Optional<CategoryEntity> categoryOptional = categoryRepository.findById(id);
+        if (categoryOptional.isPresent()) {
+            categoryRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
     }
-
 }
