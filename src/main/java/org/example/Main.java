@@ -22,7 +22,7 @@ public class Main {
                 storageService.init();
             }
             catch(Exception ex) {
-                System.out.println("-----Хюсто у нас проблеми----"+ ex.getMessage());
+                System.out.println("-----Хюстон у нас проблеми----"+ ex.getMessage());
             }
         };
     }
