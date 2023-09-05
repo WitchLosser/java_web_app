@@ -1,5 +1,6 @@
 package org.example.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,4 +23,7 @@ public class CategoryEntity {
     private String image;
     @Column(name="description", length = 250, nullable = false)
     private String description;
+    @JsonManagedReference
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    private List<ProductEntity> products;
 }

@@ -5,7 +5,6 @@ import lombok.Data;
 @Data
 public class ProductImageDTO {
     private int id;
-    private String fileName;
     private int productId;
-    // Other fields, getters, setters
+    private String image;
 }

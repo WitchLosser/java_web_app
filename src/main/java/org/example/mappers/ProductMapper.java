@@ -3,25 +3,28 @@ package org.example.mappers;
 import org.example.dto.product.ProductCreateDTO;
 import org.example.dto.product.ProductItemDTO;
 import org.example.dto.product.ProductUpdateDTO;
+import org.example.entities.CategoryEntity;
 import org.example.entities.ProductEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.Named;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = ProductImageMapper.class)
 public interface ProductMapper {
-    ProductMapper INSTANCE = Mappers.getMapper(ProductMapper.class);
-
-    @Mapping(target = "categoryName", source = "category.name")
-    ProductItemDTO productToItemDTO(ProductEntity productEntity);
-
-    List<ProductItemDTO> productsToItemDTOs(List<ProductEntity> productEntities);
-
-    ProductEntity createDTOToEntity(ProductCreateDTO createDTO);
-
-    @Mapping(target = "id", ignore = true) // Ignore the id when updating
-    @Mapping(target = "category.id", source = "categoryId")
-    ProductEntity updateDTOToEntity(ProductUpdateDTO updateDTO, Long categoryId);
+    @Mapping(target = "categoryId", source = "category.id")
+    @Mapping(target = "images", source = "images")
+    ProductItemDTO productToItemDTO(ProductEntity product);
+    List<ProductItemDTO> listProductsToItemDTO(List<ProductEntity> list);
+    @Mapping(target = "category", source = "categoryId", qualifiedByName = "categoryIdToCategory")
+    ProductEntity productByCreateProductDTO(ProductCreateDTO dto);
+    @Mapping(target = "category", source = "categoryId", qualifiedByName = "categoryIdToCategory")
+    ProductEntity productByUpdateProductDTO(ProductUpdateDTO dto);
+    @Named("categoryIdToCategory")
+    static CategoryEntity categoryIdToCategory(int categoryId) {
+        CategoryEntity category = new CategoryEntity();
+        category.setId(categoryId);
+        return category;
+    }
 }

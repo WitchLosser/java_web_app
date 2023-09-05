@@ -7,11 +7,10 @@ import java.util.List;
 
 @Data
 public class ProductItemDTO {
-    private Long id;
+    private int id;
     private String name;
     private String description;
+    private List<ProductImageDTO> images;
     private int categoryId;
-    private String categoryName;
-    private List<ProductImageDTO> images; // List of ProductImageDTOs
-    // Other fields, getters, setters
+    private Double price;
 }
