@@ -6,6 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -18,16 +22,19 @@ public class ProductEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Column(name = "name", length = 250, nullable = false)
+    @Column(length = 500, nullable = false)
     private String name;
-    @Column(name = "description", length = 250, nullable = false)
+    private double price;
+    @Column(length = 4000)
     private String description;
-    @JsonManagedReference
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImageEntity> images;
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateCreated;
+    private boolean isDelete;
+    @ManyToOne( fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name="category_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private CategoryEntity category;
-    @Transient
-    private int categoryId;
+
+    @OneToMany(mappedBy="product")
+    private List<ProductImageEntity> productImages;
 }

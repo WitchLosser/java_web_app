@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Entity
 @Table(name="tbl_categories")
@@ -23,7 +25,6 @@ public class CategoryEntity {
     private String image;
     @Column(name="description", length = 250, nullable = false)
     private String description;
-    @JsonManagedReference
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "category")
     private List<ProductEntity> products;
 }

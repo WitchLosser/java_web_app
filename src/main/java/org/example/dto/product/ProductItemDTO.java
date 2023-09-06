@@ -1,16 +1,17 @@
 package org.example.dto.product;
 
 import lombok.Data;
-import org.example.dto.productimage.ProductImageDTO;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
 public class ProductItemDTO {
     private int id;
     private String name;
+    private double price;
     private String description;
-    private List<ProductImageDTO> images;
-    private int categoryId;
-    private Double price;
+    private String category;
+    private int category_id;
+    private List<String> files = new ArrayList<>();
 }
