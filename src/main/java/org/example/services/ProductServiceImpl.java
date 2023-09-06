@@ -11,6 +11,7 @@ import org.example.interfaces.ProductService;
 import org.example.mappers.ProductMapper;
 import org.example.repositories.ProductImageRepository;
 import org.example.repositories.ProductRepository;
+import org.example.storage.FileSaveFormat;
 import org.example.storage.StorageService;
 import org.springframework.stereotype.Service;
 
@@ -40,9 +41,9 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(p);
         int priority=1;
         for (var img : model.getFiles()) {
-            var file = storageService.saveMultipartFile(img);
+            String fileName = storageService.saveThumbnailator(img, FileSaveFormat.WEBP);
             ProductImageEntity pi = new ProductImageEntity();
-            pi.setName(file);
+            pi.setName(fileName);
             pi.setDateCreated(new Date());
             pi.setPriority(priority);
             pi.setDelete(false);
@@ -84,7 +85,7 @@ public class ProductServiceImpl implements ProductService {
             }
             priority++;
             for (var img : model.getFiles()) {
-                var file = storageService.saveMultipartFile(img);
+                var file = storageService.saveThumbnailator(img, FileSaveFormat.WEBP);
                 ProductImageEntity pi = new ProductImageEntity();
                 pi.setName(file);
                 pi.setDateCreated(new Date());
