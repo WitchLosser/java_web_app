@@ -7,6 +7,7 @@ import org.example.dto.category.CategoryUpdateDTO;
 import org.example.entities.CategoryEntity;
 import org.example.mappers.CategoryMapper;
 import org.example.repositories.CategoryRepository;
+import org.example.storage.FileSaveFormat;
 import org.example.storage.StorageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,7 +32,7 @@ public class CategoryController {
     }
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public CategoryItemDTO create(@ModelAttribute CategoryCreateDTO dto) {
-        String fileName = storageService.saveMultipartFile(dto.getImage());
+        String fileName = storageService.saveThumbnailator(dto.getImage(), FileSaveFormat.WEBP);
         CategoryEntity cat = CategoryEntity
                 .builder()
                 .name(dto.getName())
@@ -54,7 +55,7 @@ public class CategoryController {
         if (categoryOptional.get().getImage() != null && !dto.getImage().isEmpty()) {
             storageService.removeFile(categoryOptional.get().getImage());
         }
-        String fileName = storageService.saveMultipartFile(dto.getImage());
+        String fileName = storageService.saveThumbnailator(dto.getImage(), FileSaveFormat.WEBP);
         return categoryOptional.map(category -> {
             category.setName(dto.getName());
             category.setDescription(dto.getDescription());
