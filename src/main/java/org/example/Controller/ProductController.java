@@ -1,5 +1,6 @@
 package org.example.Controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.example.dto.product.ProductCreateDTO;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @RequestMapping("api/products")
+@SecurityRequirement(name = "my-api")
 public class ProductController {
     private final ProductService productService;
 

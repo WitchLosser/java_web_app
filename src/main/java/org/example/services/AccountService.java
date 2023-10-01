@@ -1,66 +1,51 @@
 package org.example.services;
 
+import lombok.RequiredArgsConstructor;
 import org.example.configuration.security.JwtService;
-import org.example.constants.Roles;
+
 import org.example.dto.auth.AuthResponseDTO;
 import org.example.dto.auth.LoginDTO;
 import org.example.dto.auth.RegisterDTO;
 import org.example.entities.UserEntity;
-import org.example.entities.UserRoleEntity;
-import org.example.repositories.RoleRepository;
+import org.example.mappers.AccountMapper;
 import org.example.repositories.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.example.repositories.UserRoleRepository;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class AccountService {
-    private final UserRepository repository;
-    private final RoleRepository roleRepository;
-    private final UserRoleRepository userRoleRepository;
+
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
-
-    public AuthResponseDTO register(RegisterDTO request) {
-        var user = UserEntity.builder()
-                .firstName(request.getFirstname())
-                .lastName(request.getLastname())
-                .email(request.getEmail())
-                .phone("093 839 43 23")
-                .password(passwordEncoder.encode(request.getPassword()))
-                .build();
-        repository.save(user);
-        var role = roleRepository.findByName(Roles.User);
-        var ur = new UserRoleEntity().builder()
-                .user(user)
-                .role(role)
-                .build();
-        userRoleRepository.save(ur);
-
-        var jwtToken = jwtService.generateAccessToken(user);
-        return AuthResponseDTO.builder()
-                .token(jwtToken)
-                .build();
-    }
+    private final AccountMapper accountMapper;
 
     public AuthResponseDTO login(LoginDTO request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-        var user = repository.findByEmail(request.getEmail())
+        var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow();
+
+        //var password = passwordEncoder.
+        var isValid = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        if(!isValid) {
+            throw new UsernameNotFoundException("User not found");
+        }
+
         var jwtToken = jwtService.generateAccessToken(user);
         return AuthResponseDTO.builder()
                 .token(jwtToken)
                 .build();
     }
-
+    public void register(RegisterDTO request) {
+        var user = userRepository.findByEmail(request.getEmail());
+        if (user.isPresent()) {
+            throw new UsernameNotFoundException("User email already registered");
+        }
+        else {
+            UserEntity newUser = accountMapper.itemDtoToUser(request);
+            newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+            userRepository.save(newUser);
+        }
+    }
 }

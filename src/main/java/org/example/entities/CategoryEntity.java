@@ -25,6 +25,7 @@ public class CategoryEntity {
     private String image;
     @Column(name="description", length = 250, nullable = false)
     private String description;
+
     @OneToMany(mappedBy = "category")
     private List<ProductEntity> products;
 }
