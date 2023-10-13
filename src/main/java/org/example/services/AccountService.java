@@ -22,26 +22,46 @@ public class AccountService {
     private final JwtService jwtService;
     private final AccountMapper accountMapper;
 
-    public AuthResponseDTO login(LoginDTO request) {
-        var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow();
+    public AuthResponseDTO login(LoginDTO dto) {
 
-        //var password = passwordEncoder.
-        var isValid = passwordEncoder.matches(request.getPassword(), user.getPassword());
-        if(!isValid) {
+        var userAuth = userRepository.findByEmail(dto.getEmail());
+
+        if(!userAuth.isPresent())
             throw new UsernameNotFoundException("User not found");
-        }
+
+        var user = userAuth.get();
+
+        if(user.isGoogleAuth())
+            throw new AccountException("User login using google");
+
+        var isValid = passwordEncoder.matches(dto.getPassword(), user.getPassword());
+
+        if(!isValid)
+            throw new UsernameNotFoundException("User not found");
 
         var jwtToken = jwtService.generateAccessToken(user);
+
+        return AuthResponseDTO.builder()
+                .token(jwtToken)
+                .build();
+    }
+
+    public AuthResponseDTO getUserToken(UserEntity user) {
+
+        var jwtToken = jwtService.generateAccessToken(user);
+
         return AuthResponseDTO.builder()
                 .token(jwtToken)
                 .build();
     }
     public void register(RegisterDTO request) {
+
         var user = userRepository.findByEmail(request.getEmail());
+
         if (user.isPresent()) {
             throw new UsernameNotFoundException("User email already registered");
         }
+
         else {
             UserEntity newUser = accountMapper.itemDtoToUser(request);
             newUser.setPassword(passwordEncoder.encode(request.getPassword()));

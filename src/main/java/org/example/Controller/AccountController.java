@@ -25,10 +25,15 @@ public class AccountController {
     private static final String RECAPTCHA_SECRET_KEY = "6LeOnGooAAAAAI-XYC9nM-Xtg-BVSB8P-eJXLzb4";
     private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
     @PostMapping("/register")
-    public ResponseEntity<Void> register(@RequestBody RegisterDTO registrationRequest) {
+    public ResponseEntity<AuthResponseDTO> register(@RequestBody RegisterDTO registrationRequest) {
         try {
             service.register(registrationRequest);
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+            var auth = service.login(LoginDTO
+                    .builder()
+                    .email(registrationRequest.getEmail())
+                    .password(registrationRequest.getPassword())
+                    .build());
+            return ResponseEntity.ok(auth);
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
